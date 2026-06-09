@@ -10,6 +10,8 @@ if (file_exists($autoloadPath1)) {
     require_once $autoloadPath2;
 }
 
+use App\JsonParser;
+
 $doc = <<<DOC
 Generate diff
 
@@ -24,4 +26,33 @@ Options:
   --format <fmt>                Report format [default: stylish]
 DOC;
 
-$args = Docopt::handle($doc);
+$response = Docopt::handle($doc);
+if ($response->success && empty(array_diff(['<firstFile>', '<secondFile>'], array_keys($response->args)))) {
+    $firstFilePath = $response['<firstFile>'];
+    $secondFilePath = $response['<secondFile>'];
+
+    $normalizedFirstFilePath = realpath($firstFilePath);
+    $normalizedSecondFilePath = realpath($secondFilePath);
+
+    if ($normalizedFirstFilePath === false) {
+        throw new Exception("Not found first file by path: {$firstFilePath}!");
+    }
+
+    if ($normalizedSecondFilePath === false) {
+        throw new Exception("Not found second file by path: {$secondFilePath}!");
+    }
+
+    $firstFileContent = file_get_contents($normalizedFirstFilePath);
+    $secondFileContent = file_get_contents($normalizedSecondFilePath);
+
+    try {
+        $firstFileData = JsonParser\parse($firstFileContent);
+        $secondFileData = JsonParser\parse($secondFileContent);
+    } catch(\Exception $e) {
+        echo $e, PHP_EOL;
+        die;
+    }
+
+    echo $firstFileContent, PHP_EOL;
+    echo $secondFileContent, PHP_EOL;
+}
