@@ -8,10 +8,14 @@ jobs:
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v6
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
       - name: Install dependencies
         run: make install
-      - name: Lint
+      - name: Run linters
         run: make lint
-      - name: Unit-tests
+      - name: Run tests
         run: make test
       - run: echo "🍏 This job's status is ${{ job.status }}."
