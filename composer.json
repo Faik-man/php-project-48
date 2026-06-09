@@ -7,8 +7,11 @@
     ],
     "autoload": {
         "files": [
-            "src/JsonParser.php"
-        ]
+            "src/Differ.php"
+        ],
+        "psr-4": {
+            "Differ\\": "src/"
+        }
     },
     "require": {
         "docopt/docopt": "^1.0"

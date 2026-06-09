@@ -1,8 +1,8 @@
 <?php
 
-namespace App\JsonParser;
+namespace Differ\Differ;
 
-function parse(string $content): \stdClass
+function parseJson(string $content): \stdClass
 {
     return json_decode(json: $content, flags: JSON_THROW_ON_ERROR);
 }

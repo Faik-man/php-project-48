@@ -10,7 +10,7 @@ if (file_exists($autoloadPath1)) {
     require_once $autoloadPath2;
 }
 
-use App\JsonParser;
+use function Differ\Differ\parseJson;
 
 $doc = <<<DOC
 Generate diff
@@ -46,8 +46,8 @@ if ($response->success && empty(array_diff(['<firstFile>', '<secondFile>'], arra
     $secondFileContent = file_get_contents($normalizedSecondFilePath);
 
     try {
-        $firstFileData = JsonParser\parse($firstFileContent);
-        $secondFileData = JsonParser\parse($secondFileContent);
+        $firstFileData = parseJson($firstFileContent);
+        $secondFileData = parseJson($secondFileContent);
     } catch(\Exception $e) {
         echo $e, PHP_EOL;
         die;
