@@ -17,6 +17,8 @@
         "docopt/docopt": "^1.0"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "^4.0"
+        "squizlabs/php_codesniffer": "^4.0",
+        "phpunit/phpunit": "^13.2",
+        "phpstan/phpstan": "^2.2"
     }
 }
