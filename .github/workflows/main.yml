@@ -1,0 +1,14 @@
+name: main
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v6
+      - name: Lint
+        uses: make lint
+      - name: Unit-tests
+        uses: make test
