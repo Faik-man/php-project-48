@@ -12,5 +12,8 @@
     },
     "require": {
         "docopt/docopt": "^1.0"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^4.0"
     }
 }
