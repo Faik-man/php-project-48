@@ -1,0 +1,11 @@
+{
+    "name": "hexlet/code",
+    "description": "",
+    "license": "MIT",
+    "bin": [
+        "bin/gendiff"
+    ],
+    "require": {
+        "docopt/docopt": "^1.0"
+    }
+}
