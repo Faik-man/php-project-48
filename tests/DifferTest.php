@@ -6,6 +6,8 @@ use PHPUnit\Framework\TestCase;
 
 use function Differ\Differ\genDiff;
 use function Differ\Differ\normalizePath;
+use function Differ\Differ\getParser;
+use function Differ\Differ\getFileContent;
 use Differ\Parsers\Json;
 use Differ\Parsers\Yaml;
 
@@ -17,9 +19,14 @@ class DifferTest extends TestCase
 
         chdir(__DIR__);
         $normalizedFilePath2 = normalizePath('./fixtures/file1.json');
+
+        chdir(__DIR__ . '/../src');
+        $normalizedFilePath3 = normalizePath('../tests/fixtures/file1.json');
+
         $expected = __DIR__ . '/fixtures/file1.json';
         $this->assertEquals($expected, $normalizedFilePath1);
         $this->assertEquals($expected, $normalizedFilePath2);
+        $this->assertEquals($expected, $normalizedFilePath3);
     }
 
     public function testParseValidJson(): void
@@ -130,4 +137,15 @@ class DifferTest extends TestCase
         $this->assertEquals($expected, $result);
     }
 
+    public function testGetUndefinedParser(): void
+    {
+        $this->expectException(\Exception::class);
+        getParser('xml', 'xml');
+    }
+
+    public function testGetContentOfNotExistsFile(): void
+    {
+        $this->expectException(\Exception::class);
+        getFileContent(__DIR__ . '/fixtures/random_file.json');
+    }
 }

@@ -66,9 +66,9 @@ function getParser(string $fileExtension1, string $fileExtension2): callable
 
 function getFileContent(string $filePath): string
 {
-    $fileContent = file_get_contents($filePath);
+    $fileContent = @file_get_contents($filePath);
     if ($fileContent === false) {
-        throw new \Exception("Not found first file by path: {$filePath}!");
+        throw new \Exception("Not found file by path: {$filePath}!");
     }
 
     return (string)$fileContent;
