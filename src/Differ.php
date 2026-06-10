@@ -3,28 +3,25 @@
 namespace Differ\Differ;
 
 use Funct\Collection;
+use Differ\Parsers\Json;
+use Differ\Parsers\Yaml;
+
+const YAML_EXTENSIONS = ['yml', 'yaml'];
 
 function genDiff(string $filePath1, string $filePath2): string
 {
-    $getFileContent = function (string $filePath): string {
-        $normalizedFilePath = realpath($filePath);
-        if ($normalizedFilePath === false) {
-            throw new \Exception("Not found first file by path: {$filePath}!");
-        }
+    $normalizedFilePath1 = normalizePath($filePath1);
+    $normalizedFilePath2 = normalizePath($filePath2);
 
-        $fileContent = file_get_contents($normalizedFilePath);
-        if ($fileContent === false) {
-            throw new \Exception("Not found first file by path: {$normalizedFilePath}!");
-        }
+    $fileExtension1 = getFileExtension($normalizedFilePath1);
+    $fileExtension2 = getFileExtension($normalizedFilePath2);
 
-        return $fileContent;
-    };
+    $fileContent1 = getFileContent($normalizedFilePath1);
+    $fileContent2 = getFileContent($normalizedFilePath2);
 
-    $fileContent1 = $getFileContent($filePath1);
-    $fileContent2 = $getFileContent($filePath2);
-
-    $fileObj1 = parseJson($fileContent1);
-    $fileObj2 = parseJson($fileContent2);
+    $functionParser = getParser($fileExtension1, $fileExtension2);
+    $fileObj1 = $functionParser($fileContent1);
+    $fileObj2 = $functionParser($fileContent2);
 
     $keys = array_unique(
         array_merge(
@@ -56,12 +53,68 @@ function genDiff(string $filePath1, string $filePath2): string
     return "{\n" . implode("\n", $result) . "\n}";
 }
 
+function getParser(string $fileExtension1, string $fileExtension2): callable
+{
+    if ($fileExtension1 === 'json' && $fileExtension2 === 'json') {
+        return fn(string $content) => Json\Parse($content);
+    } elseif (in_array($fileExtension1, YAML_EXTENSIONS) && in_array($fileExtension2, YAML_EXTENSIONS)) {
+        return fn(string $content) => Yaml\parse($content);
+    } else {
+        throw new \Exception('Not found implemented parsers for files!');
+    }
+}
+
+function getFileContent(string $filePath): string
+{
+    $fileContent = file_get_contents($filePath);
+    if ($fileContent === false) {
+        throw new \Exception("Not found first file by path: {$filePath}!");
+    }
+
+    return (string)$fileContent;
+}
+
+function getFileExtension(string $filePath): string
+{
+    $pathInfo = pathinfo($filePath);
+    return $pathInfo['extension'] ?? '';
+}
+
+function normalizePath(string $filePath): string
+{
+    if (
+        str_starts_with($filePath, '/') ||
+        (ctype_alpha($filePath[0]) && str_starts_with(mb_substr($filePath, 1), ":\\"))
+    ) {
+        return $filePath;
+    }
+
+    $absFilePath = getcwd() . "/{$filePath}";
+
+    $pathParts = explode(DIRECTORY_SEPARATOR, $absFilePath);
+    $filteredPathParts = array_filter(
+        $pathParts,
+        fn(string $part) => $part !== '.'
+    );
+
+    $filteredPathParts = array_reduce(
+        $filteredPathParts,
+        function (array $acc, string $part): array {
+            if ($part == '..') {
+                array_pop($acc);
+            } else {
+                array_push($acc, $part);
+            }
+
+            return $acc;
+        },
+        []
+    );
+
+    return implode(DIRECTORY_SEPARATOR, $filteredPathParts);
+}
+
 function toString(mixed $value): string
 {
     return trim(var_export($value, true), "'");
-}
-
-function parseJson(string $content): \stdClass
-{
-    return json_decode(json: $content, flags: JSON_THROW_ON_ERROR);
 }
