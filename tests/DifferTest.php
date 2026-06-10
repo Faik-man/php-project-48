@@ -11,6 +11,17 @@ use Differ\Parsers\Yaml;
 
 class DifferTest extends TestCase
 {
+    public function testNormalizeFilePath(): void
+    {
+        $normalizedFilePath1 = normalizePath(__DIR__ . '/fixtures/file1.json');
+
+        chdir(__DIR__);
+        $normalizedFilePath2 = normalizePath('./fixtures/file1.json');
+        $expected = __DIR__ . '/fixtures/file1.json';
+        $this->assertEquals($expected, $normalizedFilePath1);
+        $this->assertEquals($expected, $normalizedFilePath2);
+    }
+
     public function testParseValidJson(): void
     {
         $jsonContent = file_get_contents(__DIR__ . '/fixtures/file1.json');
