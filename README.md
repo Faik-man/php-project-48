@@ -15,3 +15,4 @@
 
 ### Аскинемы:
 - [Шаг 4](https://asciinema.org/a/6glYHIaVRWi93IjV)
+- [Шаг 6](https://asciinema.org/a/uqMMC2geQiprmr22)
