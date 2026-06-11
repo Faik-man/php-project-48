@@ -8,7 +8,7 @@ use Differ\Parsers\Yaml;
 
 const YAML_EXTENSIONS = ['yml', 'yaml'];
 
-function genDiff(string $filePath1, string $filePath2): string
+function genDiff(string $filePath1, string $filePath2): array
 {
     $normalizedFilePath1 = normalizePath($filePath1);
     $normalizedFilePath2 = normalizePath($filePath2);
@@ -23,34 +23,57 @@ function genDiff(string $filePath1, string $filePath2): string
     $fileObj1 = $functionParser($fileContent1);
     $fileObj2 = $functionParser($fileContent2);
 
-    $keys = array_unique(
-        array_merge(
-            array_keys(get_object_vars($fileObj1)),
-            array_keys(get_object_vars($fileObj2))
-        )
-    );
-    $sortedKeys = Collection\sortBy($keys, fn($key) => $key);
+    $iter = function (object $fileObj1, object $fileObj2) use (&$iter) {
+        $keys = array_unique(
+            array_merge(
+                array_keys(get_object_vars($fileObj1)),
+                array_keys(get_object_vars($fileObj2))
+            )
+        );
+        $sortedKeys = Collection\sortBy($keys, fn($key) => $key);
 
-    $result = [];
-    foreach ($sortedKeys as $key) {
-        if (isset($fileObj1->$key) && !isset($fileObj2->$key)) {
-            $value = toString($fileObj1->$key);
-            $result[] = "  - {$key}: {$value}";
-        } elseif (!isset($fileObj1->$key) && isset($fileObj2->$key)) {
-            $value = toString($fileObj2->$key);
-            $result[] = "  + {$key}: {$value}";
-        } elseif ($fileObj1->$key === $fileObj2->$key) {
-            $value = toString($fileObj1->$key);
-            $result[] = "    {$key}: {$value}";
-        } else {
-            $value1 = toString($fileObj1->$key);
-            $value2 = toString($fileObj2->$key);
-            $result[] = "  - {$key}: {$value1}";
-            $result[] = "  + {$key}: {$value2}";
+        $tree = [];
+        foreach ($sortedKeys as $key) {
+            if (property_exists($fileObj1, $key) && !property_exists($fileObj2, $key)) {
+                $value = $fileObj1->$key;
+                $tree = insertNode($tree, $key, $value, '-');
+            } elseif (!property_exists($fileObj1, $key) && property_exists($fileObj2, $key)) {
+                $value = $fileObj2->$key;
+                $tree = insertNode($tree, $key, $value, '+');
+            } elseif (is_object($fileObj1->$key) && is_object($fileObj2->$key)) {
+                $children = $iter($fileObj1->$key, $fileObj2->$key);
+                $tree = insertNode($tree, $key, '', ' ', $children);
+            } elseif ($fileObj1->$key === $fileObj2->$key) {
+                $value = $fileObj1->$key;
+                $tree = insertNode($tree, $key, $value, ' ');
+            } else {
+                $value1 = $fileObj1->$key;
+                $value2 = $fileObj2->$key;
+                $tree = insertNode($tree, $key, [$value1, $value2], '-+');
+            }
         }
-    }
 
-    return "{\n" . implode("\n", $result) . "\n}";
+        return $tree;
+    };
+
+    $result = $iter($fileObj1, $fileObj2);
+
+    return $result;
+}
+
+function createNode(mixed $value, string $diffType, array $children = []): array
+{
+    return [
+        'value' => $value,
+        'diff_type' => $diffType,
+        'children' => $children
+    ];
+}
+
+function insertNode(array $tree, string $key, mixed $value, string $diffType, array $children = []): array
+{
+    $tree[$key] = createNode($value, $diffType, $children);
+    return $tree;
 }
 
 function getParser(string $fileExtension1, string $fileExtension2): callable
@@ -112,9 +135,4 @@ function normalizePath(string $filePath): string
     );
 
     return implode(DIRECTORY_SEPARATOR, $filteredPathParts);
-}
-
-function toString(mixed $value): string
-{
-    return trim(var_export($value, true), "'");
 }

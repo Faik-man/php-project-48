@@ -9,7 +9,8 @@
         "files": [
             "src/Differ.php",
             "src/Parsers/Json.php",
-            "src/Parsers/Yaml.php"
+            "src/Parsers/Yaml.php",
+            "src/Formatters/Stylish.php"
         ],
         "psr-4": {
             "Differ\\": "src/"

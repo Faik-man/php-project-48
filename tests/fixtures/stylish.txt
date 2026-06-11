@@ -1,0 +1,6 @@
+{
+  - nest: {
+        key: value
+    }
+  + nest: str
+}
