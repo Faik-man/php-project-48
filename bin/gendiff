@@ -11,6 +11,7 @@ if (file_exists($autoloadPath1)) {
 }
 
 use function Differ\Differ\genDiff;
+use Differ\Formatters\Stylish;
 
 $doc = <<<DOC
 Generate diff
@@ -52,5 +53,7 @@ if ($response->success && empty(array_diff(['<firstFile>', '<secondFile>'], arra
         die;
     }
 
-    echo $diff, PHP_EOL;
+    if (isset($response->args['--format']) && $response->args['--format'] === 'stylish') {
+        echo Stylish\format($diff), PHP_EOL;
+    }
 }
