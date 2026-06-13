@@ -9,7 +9,6 @@ use function Differ\Differ\genDiff;
 use function Differ\Differ\buildDiff;
 use function Differ\Differ\normalizePath;
 use function Differ\Parsers\getParser;
-use function Differ\Differ\getFileContent;
 use function Differ\Formatters\getFormatter;
 
 class DifferTest extends TestCase
@@ -65,49 +64,40 @@ class DifferTest extends TestCase
         ];
     }
 
-    #[DataProvider('jsonProvider')]
-    public function testGenDiffJson(array $filenames, string $format, int $caseIndex): void
+    #[DataProvider('genDiffProvider')]
+    public function testGenDiffJson(string $format, int $caseIndex): void
     {
-        $filePath1 = $this->getFilePath($filenames[0]);
-        $filePath2 = $this->getFilePath($filenames[1]);
+        $filePath1 = $this->getFilePath('file1.json');
+        $filePath2 = $this->getFilePath('file2.json');
 
         $actual = genDiff($filePath1, $filePath2, $format);
 
         $this->assertEquals($this->expected[$caseIndex], $actual);
     }
 
-    public static function jsonProvider(): array
+    #[DataProvider('genDiffProvider')]
+    public function testGenDiffYaml(string $format, int $caseIndex): void
     {
-        return [
-            [['file1.json', 'file2.json'], 'stylish', 0],
-            [['file1.json', 'file2.json'], 'plain', 1],
-            [['file1.json', 'file2.json'], 'json', 2]
-        ];
-    }
-
-    public static function ymlProvider(): array
-    {
-        return [
-            [['file1.yml', 'file2.yml'], 'stylish', 0],
-            [['file1.yml', 'file2.yml'], 'plain', 1],
-            [['file1.yml', 'file2.yml'], 'json', 2]
-        ];
-    }
-
-    #[DataProvider('ymlProvider')]
-    public function testGenDiffYaml(array $filenames, string $format, int $caseIndex): void
-    {
-        $filePath1 = $this->getFilePath($filenames[0]);
-        $filePath2 = $this->getFilePath($filenames[1]);
+        $filePath1 = $this->getFilePath('file1.yml');
+        $filePath2 = $this->getFilePath('file2.yml');
         $actual = genDiff($filePath1, $filePath2, $format);
 
         $this->assertEquals($this->expected[$caseIndex], $actual);
+    }
+
+    public static function genDiffProvider(): array
+    {
+        return [
+            ['stylish', 0],
+            ['plain', 1],
+            ['json', 2]
+        ];
     }
 
     public function testGetUndefinedParser(): void
     {
         $this->expectException(\Exception::class);
-        getParser('xml', 'xml');
+        getParser('xml');
     }
 
     public function testGetUndefinedFormatter(): void
@@ -119,7 +109,7 @@ class DifferTest extends TestCase
     public function testGetContentOfNotExistsFile(): void
     {
         $this->expectException(\Exception::class);
-        getFileContent($this->getFilePath('random_file.json'));
+        genDiff($this->getFilePath('random_file1.json'), $this->getFilePath('random_file2.json'));
     }
 
     public function testGenDiffUnmatchedParsers(): void

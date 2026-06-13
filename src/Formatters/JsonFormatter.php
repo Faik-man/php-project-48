@@ -11,7 +11,7 @@ class JsonFormatter implements FormatterInterface
         $json = self::createJsonObject($tree);
 
         $iter = function (string $propertyName, mixed $propertyValue, int $depth = 1) use (&$iter): string {
-            $spaces = str_repeat(' ', $depth * 4);
+            $spaces = str_repeat(' ', $depth * self::SPACES_COUNT);
             if (!is_object($propertyValue)) {
                 $result = $spaces . self::toString($propertyName) . ': ' . self::toString($propertyValue);
                 return $result;
@@ -29,11 +29,12 @@ class JsonFormatter implements FormatterInterface
                 array_keys($innerProperties)
             );
 
-            $str = $spaces . self::toString($propertyName) . ": {\n" .
-                implode(",\n", $updatedProperties) . "\n" .
-                $spaces . "}";
+            $begin = $spaces . self::toString($propertyName) . ": {\n";
+            $end = $spaces . '}';
 
-            return $str;
+            $result = $begin . implode(",\n", $updatedProperties) . "\n" . $end;
+
+            return $result;
         };
 
         $properties = get_object_vars($json);

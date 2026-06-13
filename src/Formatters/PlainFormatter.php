@@ -30,9 +30,9 @@ class PlainFormatter implements FormatterInterface
                         $status = "Property '%s' was updated. From {$value[0]} to {$value[1]}";
                         break;
                     default:
-                        $status = '';
                         break;
                 }
+
                 return [sprintf($status, implode('.', $newParents))];
             }
 
@@ -49,9 +49,7 @@ class PlainFormatter implements FormatterInterface
 
         $flattenedResult = Collection\flattenAll($result);
 
-        $result = array_filter($flattenedResult);
-
-        return implode("\n", $result);
+        return implode("\n", array_filter($flattenedResult));
     }
 
     private static function toString(mixed $value): string

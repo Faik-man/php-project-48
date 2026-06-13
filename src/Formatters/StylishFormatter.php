@@ -9,12 +9,12 @@ class StylishFormatter implements FormatterInterface
     public static function format(array $tree): string
     {
         $iter = function (Node $node, array $acc, $depth = 1) use (&$iter): array {
-            $k = $node->getPropertyName();
+            $propertyName = $node->getPropertyName();
             $value = $node->getValue();
             $diffType = $node->getDiffType();
             $children = $node->getChildren();
 
-            $spacesCount = $depth * 4;
+            $spacesCount = $depth * self::SPACES_COUNT;
             $newDepth = $depth + 1;
 
             $spaces = self::createSpaces($diffType, $spacesCount);
@@ -22,18 +22,18 @@ class StylishFormatter implements FormatterInterface
                 if ($diffType === Node::UPDATED) {
                     $newAcc = array_merge($acc, [
                         self::createSpaces(Node::REMOVED, $spacesCount) .
-                        $k . ': ' . self::toString($value[0], $newDepth),
+                        "{$propertyName}: " . self::toString($value[0], $newDepth),
                         self::createSpaces(Node::ADDED, $spacesCount) .
-                        $k . ': ' . self::toString($value[1], $newDepth)
+                        "{$propertyName}: " . self::toString($value[1], $newDepth)
                     ]);
                 } else {
-                    $newAcc = [...$acc, $spaces . $k . ': ' . self::toString($value, $newDepth)];
+                    $newAcc = [...$acc, $spaces . $propertyName . ': ' . self::toString($value, $newDepth)];
                 }
 
                 return $newAcc;
             }
 
-            $newAcc = [...$acc, $spaces . $k . ': {'];
+            $newAcc = [...$acc, "{$spaces}{$propertyName}: {"];
 
             $updatedChildren = array_reduce(
                 $children,
@@ -41,7 +41,7 @@ class StylishFormatter implements FormatterInterface
                 $newAcc
             );
 
-            return [...$updatedChildren, $spaces . "}"];
+            return [...$updatedChildren, $spaces . '}'];
         };
 
         $result = array_reduce(
@@ -51,7 +51,7 @@ class StylishFormatter implements FormatterInterface
         );
 
         $result = implode("\n", $result);
-        return "{\n" . $result . "\n}";
+        return "{\n{$result}\n}";
     }
 
     private static function createSpaces(string $diffType, int $spacesCount): string
@@ -63,20 +63,26 @@ class StylishFormatter implements FormatterInterface
     {
         if (!is_object($value)) {
             $result = trim(var_export($value, true), "'");
-            return $value === null ? mb_strtolower($result) : $result;
+            return $value === null ? 'null' : $result;
         }
 
-        $vars = get_object_vars($value);
+        $properties = get_object_vars($value);
         $result = array_map(
-            function ($key) use ($vars, $depth): string {
-                $value = $vars[$key];
-                $spaces = self::createSpaces(' ', $depth * 4);
+            function (string $propertyName) use ($properties, $depth): string {
+                $propertyValue = $properties[$propertyName];
+                $spaces = str_repeat(' ', $depth * self::SPACES_COUNT);
 
-                return $spaces . $key . ': ' . self::toString($value, $depth + 1);
+                return $spaces . $propertyName . ': ' . self::toString($propertyValue, $depth + 1);
             },
-            array_keys($vars)
+            array_keys($properties)
         );
 
-        return "{\n" . implode("\n", $result) . "\n" . self::createSpaces(' ', ($depth - 1) * 4) . '}';
+        $objectParts = [
+            '{',
+            implode("\n", $result),
+            str_repeat(' ', self::SPACES_COUNT * ($depth - 1)) . '}'
+        ];
+
+        return implode("\n", $objectParts);
     }
 }
