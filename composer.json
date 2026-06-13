@@ -12,7 +12,8 @@
             "src/Parsers/Yaml.php",
             "src/Formatters.php",
             "src/Formatters/Stylish.php",
-            "src/Formatters/Plain.php"
+            "src/Formatters/Plain.php",
+            "src/Formatters/Json.php"
         ],
         "psr-4": {
             "Differ\\": "src/"

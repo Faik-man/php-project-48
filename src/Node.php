@@ -9,6 +9,11 @@ class Node
     private string $diffType;
     private array $children;
 
+    public const UNCHANGED = ' ';
+    public const REMOVED = '-';
+    public const ADDED = '+';
+    public const UPDATED = '-+';
+
     public function __construct(string $propertyName, mixed $value, string $diffType, array $children = [])
     {
         $this->propertyName = $propertyName;

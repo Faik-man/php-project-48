@@ -46,20 +46,20 @@ function buildDiff(string $filePath1, string $filePath2): array
         foreach ($sortedKeys as $key) {
             if (property_exists($fileObj1, $key) && !property_exists($fileObj2, $key)) {
                 $value = $fileObj1->$key;
-                $tree = insertNode($tree, $key, $value, '-');
+                $tree = insertNode($tree, $key, $value, Node::REMOVED);
             } elseif (!property_exists($fileObj1, $key) && property_exists($fileObj2, $key)) {
                 $value = $fileObj2->$key;
-                $tree = insertNode($tree, $key, $value, '+');
+                $tree = insertNode($tree, $key, $value, Node::ADDED);
             } elseif (is_object($fileObj1->$key) && is_object($fileObj2->$key)) {
                 $children = $iter($fileObj1->$key, $fileObj2->$key);
-                $tree = insertNode($tree, $key, '', ' ', $children);
+                $tree = insertNode($tree, $key, '', Node::UNCHANGED, $children);
             } elseif ($fileObj1->$key === $fileObj2->$key) {
                 $value = $fileObj1->$key;
-                $tree = insertNode($tree, $key, $value, ' ');
+                $tree = insertNode($tree, $key, $value, Node::UNCHANGED);
             } else {
                 $value1 = $fileObj1->$key;
                 $value2 = $fileObj2->$key;
-                $tree = insertNode($tree, $key, [$value1, $value2], '-+');
+                $tree = insertNode($tree, $key, [$value1, $value2], Node::UPDATED);
             }
         }
 

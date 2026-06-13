@@ -16,14 +16,14 @@ function format(array $tree): string
             $diffType = $node->getDiffType();
             $status = '';
             switch ($diffType) {
-                case '-':
+                case Node::REMOVED:
                     $status = "Property '%s' was removed";
                     break;
-                case '+':
+                case Node::ADDED:
                     $value = toString($value);
                     $status = "Property '%s' was added with value: {$value}";
                     break;
-                case '-+':
+                case Node::UPDATED:
                     $value = [toString($value[0]), toString($value[1])];
                     $status = "Property '%s' was updated. From {$value[0]} to {$value[1]}";
                     break;

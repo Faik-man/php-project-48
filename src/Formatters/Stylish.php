@@ -2,6 +2,8 @@
 
 namespace Differ\Formatters\Stylish;
 
+use Differ\Node;
+
 function format(array $tree): string
 {
     $iter = function (array $tree, int $depth = 1) use (&$iter): array {
@@ -17,13 +19,13 @@ function format(array $tree): string
 
             $spaces = createSpaces($diffType, $spacesCount);
             if (empty($children)) {
-                if (in_array($diffType, ['-', '+', ' '])) {
-                    $result[] = $spaces . $k . ': ' . toString($value, $newDepth);
-                } else {
+                if ($diffType === Node::UPDATED) {
                     $result = array_merge($result, [
-                        createSpaces('-', $spacesCount) . $k . ': ' . toString($value[0], $newDepth),
-                        createSpaces('+', $spacesCount) . $k . ': ' . toString($value[1], $newDepth)
+                        createSpaces(Node::REMOVED, $spacesCount) . $k . ': ' . toString($value[0], $newDepth),
+                        createSpaces(Node::ADDED, $spacesCount) . $k . ': ' . toString($value[1], $newDepth)
                     ]);
+                } else {
+                    $result[] = $spaces . $k . ': ' . toString($value, $newDepth);
                 }
             } else {
                 $result = [...$result, $spaces . $k . ': {', ...$iter($children, $newDepth), $spaces . '}'];

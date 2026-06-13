@@ -95,7 +95,7 @@ class DifferTest extends TestCase
         Json\parse($jsonContent);
     }
 
-    public function testGenDiffJsonStylishFormat(): void
+    public function testGenDiffJsonFormatStylish(): void
     {
         $filePath1 = $this->getFilePath('nested_file1.json');
         $filePath2 = $this->getFilePath('nested_file2.json');
@@ -107,7 +107,7 @@ class DifferTest extends TestCase
         $this->assertEquals($expected, $formatResult);
     }
 
-    public function testGenDiffJsonPlainFormat(): void
+    public function testGenDiffJsonFormatPlain(): void
     {
         $filePath1 = $this->getFilePath('nested_file1.json');
         $filePath2 = $this->getFilePath('nested_file2.json');
@@ -117,6 +117,17 @@ class DifferTest extends TestCase
         $expected = file_get_contents($this->getFilePath('plain1.txt'));
 
         $this->assertEquals($expected, $result);
+    }
+
+    public function testGenDiffJsonFormatJson(): void
+    {
+        $filePath1 = $this->getFilePath('nested_file1.json');
+        $filePath2 = $this->getFilePath('nested_file2.json');
+
+        $actual = genDiff($filePath1, $filePath2, 'json');
+
+        $expected = file_get_contents($this->getFilePath('nested_json1.txt'));
+        $this->assertEquals($expected, $actual);
     }
 
     public function testParseValidYaml(): void
@@ -152,7 +163,7 @@ class DifferTest extends TestCase
         Yaml\parse($jsonContent);
     }
 
-    public function testGenDiffYamlStylishFormat(): void
+    public function testGenDiffYamlFormatStylish(): void
     {
         $filePath1 = $this->getFilePath('nested_file1.yml');
         $filePath2 = $this->getFilePath('nested_file2.yml');
@@ -164,7 +175,7 @@ class DifferTest extends TestCase
         $this->assertEquals($expected, $result);
     }
 
-    public function testGenDiffYamlPlainFormat(): void
+    public function testGenDiffYamlFormatPlain(): void
     {
         $filePath1 = $this->getFilePath('nested_file1.yml');
         $filePath2 = $this->getFilePath('nested_file2.yml');
@@ -174,6 +185,17 @@ class DifferTest extends TestCase
         $expected = file_get_contents($this->getFilePath('plain1.txt'));
 
         $this->assertEquals($expected, $result);
+    }
+
+    public function testGenDiffYamlFormatJson(): void
+    {
+        $filePath1 = $this->getFilePath('nested_file1.yml');
+        $filePath2 = $this->getFilePath('nested_file2.yml');
+
+        $actual = genDiff($filePath1, $filePath2, 'json');
+        $expected = file_get_contents($this->getFilePath('nested_json1.txt'));
+
+        $this->assertEquals($expected, $actual);
     }
 
     public function testGetUndefinedParser(): void
