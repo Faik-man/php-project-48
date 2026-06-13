@@ -5,10 +5,20 @@ namespace Differ\Differ;
 use Funct\Collection;
 use Differ\Parsers\Json;
 use Differ\Parsers\Yaml;
+use Differ\Node;
+
+use function Differ\Formatters\getFormatter;
 
 const YAML_EXTENSIONS = ['yml', 'yaml'];
 
-function genDiff(string $filePath1, string $filePath2): array
+function genDiff(string $filePath1, string $filePath2, string $format = 'stylish'): string
+{
+    $result = buildDiff($filePath1, $filePath2);
+    $funcationFormatter = getFormatter($format);
+    return $funcationFormatter($result);
+}
+
+function buildDiff(string $filePath1, string $filePath2): array
 {
     $normalizedFilePath1 = normalizePath($filePath1);
     $normalizedFilePath2 = normalizePath($filePath2);
@@ -56,23 +66,12 @@ function genDiff(string $filePath1, string $filePath2): array
         return $tree;
     };
 
-    $result = $iter($fileObj1, $fileObj2);
-
-    return $result;
+    return $iter($fileObj1, $fileObj2);
 }
 
-function createNode(mixed $value, string $diffType, array $children = []): array
+function insertNode(array $tree, string $propertyName, mixed $value, string $diffType, array $children = []): array
 {
-    return [
-        'value' => $value,
-        'diff_type' => $diffType,
-        'children' => $children
-    ];
-}
-
-function insertNode(array $tree, string $key, mixed $value, string $diffType, array $children = []): array
-{
-    $tree[$key] = createNode($value, $diffType, $children);
+    $tree[] = new Node($propertyName, $value, $diffType, $children);
     return $tree;
 }
 

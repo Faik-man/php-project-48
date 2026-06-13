@@ -17,3 +17,4 @@
 - [Шаг 4](https://asciinema.org/a/6glYHIaVRWi93IjV)
 - [Шаг 6](https://asciinema.org/a/uqMMC2geQiprmr22)
 - [Шаг 7](https://asciinema.org/a/yRRKO8OGYQu9NHQH)
+- [Шаг 8](https://asciinema.org/a/YCmnTEnUlA9BG2Qu)

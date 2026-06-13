@@ -6,8 +6,12 @@ function format(array $tree): string
 {
     $iter = function (array $tree, int $depth = 1) use (&$iter): array {
         $result = [];
-        foreach ($tree as $k => $node) {
-            ['value' => $value, 'diff_type' => $diffType, 'children' => $children] = $node;
+        foreach ($tree as $node) {
+            $k = $node->getPropertyName();
+            $value = $node->getValue();
+            $diffType = $node->getDiffType();
+            $children = $node->getChildren();
+
             $spacesCount = $depth * 4;
             $newDepth = $depth + 1;
 

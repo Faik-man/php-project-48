@@ -5,11 +5,13 @@ namespace Differ\Tests;
 use PHPUnit\Framework\TestCase;
 
 use function Differ\Differ\genDiff;
+use function Differ\Differ\buildDiff;
 use function Differ\Differ\normalizePath;
-use function Differ\Differ\createNode;
 use function Differ\Differ\getParser;
 use function Differ\Differ\getFileContent;
+use function Differ\Formatters\getFormatter;
 use Differ\Formatters\Stylish;
+use Differ\Formatters\Plain;
 use Differ\Parsers\Json;
 use Differ\Parsers\Yaml;
 
@@ -93,97 +95,28 @@ class DifferTest extends TestCase
         Json\parse($jsonContent);
     }
 
-    public function testGenDiffJson(): void
+    public function testGenDiffJsonStylishFormat(): void
     {
         $filePath1 = $this->getFilePath('nested_file1.json');
         $filePath2 = $this->getFilePath('nested_file2.json');
 
-        $result = genDiff($filePath1, $filePath2);
-
-        $group2 = (function (): object {
-            $deep = new \stdClass();
-            $deep->id = 45;
-            $group2 = new \stdClass();
-            $group2->abc = 12345;
-            $group2->deep = $deep;
-            return $group2;
-        })();
-
-        $group3 = (function (): object {
-            $id = new \stdClass();
-            $id->number = 45;
-            $deep = new \stdClass();
-            $deep->id = $id;
-            $result = new \stdClass();
-            $result->deep = $deep;
-            $result->fee = 100500;
-
-            return $result;
-        })();
-
-        $nest = new \stdClass();
-        $nest->key = 'value';
-
-        $setting5 = new \stdClass();
-        $setting5->key5 = 'value5';
-
-        $expected = [
-            'common' => createNode('', ' ', [
-                'follow' => createNode(false, '+'),
-                'setting1' => createNode('Value 1', ' '),
-                'setting2' => createNode(200, '-'),
-                'setting3' => createNode([true, null], '-+'),
-                'setting4' => createNode('blah blah', '+'),
-                'setting5' => createNode($setting5, '+'),
-                'setting6' => createNode('', ' ', [
-                    'doge' => createNode('', ' ', [
-                        'wow' => createNode(['', 'so much'], '-+')
-                    ]),
-                    'key' => createNode('value', ' '),
-                    'ops' => createNode('vops', '+'),
-                ]),
-            ]),
-            'group1' => createNode('', ' ', [
-                'baz' => createNode(['bas', 'bars'], '-+'),
-                'foo' => createNode('bar', ' '),
-                'nest' => createNode([$nest, 'str'], '-+'),
-            ]),
-            'group2' => createNode($group2, '-'),
-            'group3' => createNode($group3, '+'),
-        ];
-
-        $this->assertEquals($expected, $result);
-
-        $nest = [
-            'nest' => createNode([$nest, 'str'], '-+')
-        ];
-
-        $expected = file_get_contents($this->getFilePath('stylish.txt'));
-
-        $this->assertEquals(
-            $expected,
-            Stylish\format($nest)
-        );
-
-        $nest = [
-            'nest' => createNode('', ' ', [
-                'key' => createNode('value', '-')
-            ])
-        ];
-
-        $expected = file_get_contents($this->getFilePath('stylish1.txt'));
-
-        $this->assertEquals(
-            $expected,
-            Stylish\format($nest)
-        );
-
-        $formatResult = Stylish\format($result);
-        $this->assertNotEmpty($formatResult);
+        $formatResult = genDiff($filePath1, $filePath2);
 
         $expected = file_get_contents($this->getFilePath('stylish2.txt'));
 
         $this->assertEquals($expected, $formatResult);
+    }
+
+    public function testGenDiffJsonPlainFormat(): void
+    {
+        $filePath1 = $this->getFilePath('nested_file1.json');
+        $filePath2 = $this->getFilePath('nested_file2.json');
+
+        $result = genDiff($filePath1, $filePath2, 'plain');
+
+        $expected = file_get_contents($this->getFilePath('plain1.txt'));
+
+        $this->assertEquals($expected, $result);
     }
 
     public function testParseValidYaml(): void
@@ -219,7 +152,7 @@ class DifferTest extends TestCase
         Yaml\parse($jsonContent);
     }
 
-    public function testGenDiffYaml(): void
+    public function testGenDiffYamlStylishFormat(): void
     {
         $filePath1 = $this->getFilePath('nested_file1.yml');
         $filePath2 = $this->getFilePath('nested_file2.yml');
@@ -228,14 +161,31 @@ class DifferTest extends TestCase
 
         $expected = file_get_contents($this->getFilePath('stylish2.txt'));
 
-        $formatResult = Stylish\format($result);
-        $this->assertEquals($expected, $formatResult);
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testGenDiffYamlPlainFormat(): void
+    {
+        $filePath1 = $this->getFilePath('nested_file1.yml');
+        $filePath2 = $this->getFilePath('nested_file2.yml');
+        $result = genDiff($filePath1, $filePath2, 'plain');
+        $this->assertNotEmpty($result);
+
+        $expected = file_get_contents($this->getFilePath('plain1.txt'));
+
+        $this->assertEquals($expected, $result);
     }
 
     public function testGetUndefinedParser(): void
     {
         $this->expectException(\Exception::class);
         getParser('xml', 'xml');
+    }
+
+    public function testGetUndefinedFormatter(): void
+    {
+        $this->expectException(\Exception::class);
+        getFormatter('blah blah');
     }
 
     public function testGetContentOfNotExistsFile(): void
