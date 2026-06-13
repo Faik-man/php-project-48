@@ -3,19 +3,16 @@
 namespace Differ\Differ;
 
 use Funct\Collection;
-use Differ\Parsers\Json;
-use Differ\Parsers\Yaml;
 use Differ\Node;
 
 use function Differ\Formatters\getFormatter;
-
-const YAML_EXTENSIONS = ['yml', 'yaml'];
+use function Differ\Parsers\getParser;
 
 function genDiff(string $filePath1, string $filePath2, string $format = 'stylish'): string
 {
     $result = buildDiff($filePath1, $filePath2);
-    $funcationFormatter = getFormatter($format);
-    return $funcationFormatter($result);
+    $formatter = getFormatter($format);
+    return $formatter::format($result);
 }
 
 function buildDiff(string $filePath1, string $filePath2): array
@@ -29,11 +26,11 @@ function buildDiff(string $filePath1, string $filePath2): array
     $fileContent1 = getFileContent($normalizedFilePath1);
     $fileContent2 = getFileContent($normalizedFilePath2);
 
-    $functionParser = getParser($fileExtension1, $fileExtension2);
-    $fileObj1 = $functionParser($fileContent1);
-    $fileObj2 = $functionParser($fileContent2);
+    $parser = getParser($fileExtension1, $fileExtension2);
+    $fileObj1 = $parser::parse($fileContent1);
+    $fileObj2 = $parser::parse($fileContent2);
 
-    $iter = function (object $fileObj1, object $fileObj2) use (&$iter) {
+    $iter = function (object $fileObj1, object $fileObj2) use (&$iter): array {
         $keys = array_unique(
             array_merge(
                 array_keys(get_object_vars($fileObj1)),
@@ -42,48 +39,33 @@ function buildDiff(string $filePath1, string $filePath2): array
         );
         $sortedKeys = Collection\sortBy($keys, fn($key) => $key);
 
-        $tree = [];
-        foreach ($sortedKeys as $key) {
-            if (property_exists($fileObj1, $key) && !property_exists($fileObj2, $key)) {
-                $value = $fileObj1->$key;
-                $tree = insertNode($tree, $key, $value, Node::REMOVED);
-            } elseif (!property_exists($fileObj1, $key) && property_exists($fileObj2, $key)) {
-                $value = $fileObj2->$key;
-                $tree = insertNode($tree, $key, $value, Node::ADDED);
-            } elseif (is_object($fileObj1->$key) && is_object($fileObj2->$key)) {
-                $children = $iter($fileObj1->$key, $fileObj2->$key);
-                $tree = insertNode($tree, $key, '', Node::UNCHANGED, $children);
-            } elseif ($fileObj1->$key === $fileObj2->$key) {
-                $value = $fileObj1->$key;
-                $tree = insertNode($tree, $key, $value, Node::UNCHANGED);
-            } else {
-                $value1 = $fileObj1->$key;
-                $value2 = $fileObj2->$key;
-                $tree = insertNode($tree, $key, [$value1, $value2], Node::UPDATED);
-            }
-        }
-
+        $tree = array_reduce(
+            $sortedKeys,
+            function (array $acc, string $key) use ($iter, $fileObj1, $fileObj2): array {
+                if (property_exists($fileObj1, $key) && !property_exists($fileObj2, $key)) {
+                    $value = $fileObj1->$key;
+                    return [...$acc, new Node($key, $value, Node::REMOVED)];
+                } elseif (!property_exists($fileObj1, $key) && property_exists($fileObj2, $key)) {
+                    $value = $fileObj2->$key;
+                    return [...$acc, new Node($key, $value, Node::ADDED)];
+                } elseif (is_object($fileObj1->$key) && is_object($fileObj2->$key)) {
+                    $children = $iter($fileObj1->$key, $fileObj2->$key);
+                    return [...$acc, new Node($key, '', Node::UNCHANGED, $children)];
+                } elseif ($fileObj1->$key === $fileObj2->$key) {
+                    $value = $fileObj1->$key;
+                    return [...$acc, new Node($key, $value, Node::UNCHANGED)];
+                } else {
+                    $value1 = $fileObj1->$key;
+                    $value2 = $fileObj2->$key;
+                    return [...$acc, new Node($key, [$value1, $value2], Node::UPDATED)];
+                }
+            },
+            []
+        );
         return $tree;
     };
 
     return $iter($fileObj1, $fileObj2);
-}
-
-function insertNode(array $tree, string $propertyName, mixed $value, string $diffType, array $children = []): array
-{
-    $tree[] = new Node($propertyName, $value, $diffType, $children);
-    return $tree;
-}
-
-function getParser(string $fileExtension1, string $fileExtension2): callable
-{
-    if ($fileExtension1 === 'json' && $fileExtension2 === 'json') {
-        return fn(string $content) => Json\Parse($content);
-    } elseif (in_array($fileExtension1, YAML_EXTENSIONS) && in_array($fileExtension2, YAML_EXTENSIONS)) {
-        return fn(string $content) => Yaml\parse($content);
-    } else {
-        throw new \Exception('Not found implemented parsers for files!');
-    }
 }
 
 function getFileContent(string $filePath): string

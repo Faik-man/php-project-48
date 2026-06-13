@@ -2,19 +2,19 @@
 
 namespace Differ\Formatters;
 
-use Differ\Formatters\Plain;
-use Differ\Formatters\Stylish;
-use Differ\Formatters\Json;
+use Differ\Formatters\PlainFormatter;
+use Differ\Formatters\StylishFormatter;
+use Differ\Formatters\JsonFormatter;
 
-function getFormatter(string $format): callable
+function getFormatter(string $format): FormatterInterface
 {
     switch ($format) {
         case 'stylish':
-            return fn($tree) => Stylish\format($tree);
+            return new StylishFormatter();
         case 'plain':
-            return fn($tree) => Plain\format($tree);
+            return new PlainFormatter();
         case 'json':
-            return fn($tree) => Json\format($tree);
+            return new JsonFormatter();
         default:
             throw new \Exception("Undefined formatter for {$format} format!");
     }
