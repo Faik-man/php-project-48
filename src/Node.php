@@ -41,4 +41,9 @@ class Node
     {
         return $this->diffType;
     }
+
+    public function isLeaf(): bool
+    {
+        return empty($this->children);
+    }
 }

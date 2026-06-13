@@ -12,13 +12,12 @@ class StylishFormatter implements FormatterInterface
             $propertyName = $node->getPropertyName();
             $value = $node->getValue();
             $diffType = $node->getDiffType();
-            $children = $node->getChildren();
 
             $spacesCount = $depth * self::SPACES_COUNT;
             $newDepth = $depth + 1;
 
             $spaces = self::createSpaces($diffType, $spacesCount);
-            if (empty($children)) {
+            if ($node->isLeaf()) {
                 if ($diffType === Node::UPDATED) {
                     $newAcc = array_merge($acc, [
                         self::createSpaces(Node::REMOVED, $spacesCount) .
@@ -36,7 +35,7 @@ class StylishFormatter implements FormatterInterface
             $newAcc = [...$acc, "{$spaces}{$propertyName}: {"];
 
             $updatedChildren = array_reduce(
-                $children,
+                $node->getChildren(),
                 fn(array $innerAcc, Node $child) => $iter($child, $innerAcc, $depth + 1),
                 $newAcc
             );

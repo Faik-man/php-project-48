@@ -11,8 +11,7 @@ class PlainFormatter implements FormatterInterface
     {
         $iter = function (Node $node, array $parents = []) use (&$iter): array {
             $newParents = [...$parents, $node->getPropertyName()];
-            $children = $node->getChildren();
-            if (empty($children)) {
+            if ($node->isLeaf()) {
                 $value = $node->getValue();
 
                 $diffType = $node->getDiffType();
@@ -38,7 +37,7 @@ class PlainFormatter implements FormatterInterface
 
             return array_map(
                 fn(Node $child): array => $iter($child, $newParents),
-                $children
+                $node->getChildren()
             );
         };
 

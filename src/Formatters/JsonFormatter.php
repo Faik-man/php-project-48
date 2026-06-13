@@ -50,8 +50,7 @@ class JsonFormatter implements FormatterInterface
     {
         $iter = function (Node $node, object $acc) use (&$iter): object {
             $property = $node->getPropertyName();
-            $children = $node->getChildren();
-            if (empty($children)) {
+            if ($node->isLeaf()) {
                 $value = $node->getValue();
                 $diffType = $node->getDiffType();
                 switch ($diffType) {
@@ -82,7 +81,7 @@ class JsonFormatter implements FormatterInterface
             }
 
             $acc->$property = array_reduce(
-                $children,
+                $node->getChildren(),
                 fn(object $acc, Node $child) => $iter($child, $acc),
                 new \stdClass()
             );
