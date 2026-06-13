@@ -18,3 +18,4 @@
 - [Шаг 6](https://asciinema.org/a/uqMMC2geQiprmr22)
 - [Шаг 7](https://asciinema.org/a/yRRKO8OGYQu9NHQH)
 - [Шаг 8](https://asciinema.org/a/YCmnTEnUlA9BG2Qu)
+- [Шаг 9](https://asciinema.org/a/ZxqP7sl1iZqrZPPh)
