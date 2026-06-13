@@ -46,7 +46,7 @@ if ($response->success && empty(array_diff(['<firstFile>', '<secondFile>'], arra
     $firstFileContent = file_get_contents($normalizedFirstFilePath);
     $secondFileContent = file_get_contents($normalizedSecondFilePath);
 
-    $format = isset($response->args['--format']) ? $response->args['--format'] : 'stylish';
+    $format = $response->args['--format'] ?? 'stylish';
 
     try {
         $diff = genDiff($firstFilePath, $secondFilePath, $format);

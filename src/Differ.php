@@ -26,7 +26,11 @@ function buildDiff(string $filePath1, string $filePath2): array
     $fileContent1 = getFileContent($normalizedFilePath1);
     $fileContent2 = getFileContent($normalizedFilePath2);
 
-    $parser = getParser($fileExtension1, $fileExtension2);
+    $parser = getParser($fileExtension1);
+    if ($parser != getParser($fileExtension2)) {
+        throw new \Exception('Parsers do not match each other!');
+    }
+
     $fileObj1 = $parser::parse($fileContent1);
     $fileObj2 = $parser::parse($fileContent2);
 
