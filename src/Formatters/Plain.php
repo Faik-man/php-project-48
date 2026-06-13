@@ -12,11 +12,6 @@ function format(array $tree): string
         $children = $node->getChildren();
         if (empty($children)) {
             $value = $node->getValue();
-            if (is_array($value)) {
-                $value = [toString($value[0]), toString($value[1])];
-            } else {
-                $value = toString($value);
-            }
 
             $diffType = $node->getDiffType();
             $status = '';
@@ -25,9 +20,11 @@ function format(array $tree): string
                     $status = "Property '%s' was removed";
                     break;
                 case '+':
+                    $value = toString($value);
                     $status = "Property '%s' was added with value: {$value}";
                     break;
                 case '-+':
+                    $value = [toString($value[0]), toString($value[1])];
                     $status = "Property '%s' was updated. From {$value[0]} to {$value[1]}";
                     break;
                 default:
