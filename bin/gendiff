@@ -11,7 +11,6 @@ if (file_exists($autoloadPath1)) {
 }
 
 use function Differ\Differ\genDiff;
-use Differ\Formatters\Stylish;
 
 $doc = <<<DOC
 Generate diff
@@ -31,20 +30,6 @@ $response = Docopt::handle($doc);
 if ($response->success && empty(array_diff(['<firstFile>', '<secondFile>'], array_keys($response->args)))) {
     $firstFilePath = $response['<firstFile>'];
     $secondFilePath = $response['<secondFile>'];
-
-    $normalizedFirstFilePath = realpath($firstFilePath);
-    $normalizedSecondFilePath = realpath($secondFilePath);
-
-    if ($normalizedFirstFilePath === false) {
-        throw new Exception("Not found first file by path: {$firstFilePath}!");
-    }
-
-    if ($normalizedSecondFilePath === false) {
-        throw new Exception("Not found second file by path: {$secondFilePath}!");
-    }
-
-    $firstFileContent = file_get_contents($normalizedFirstFilePath);
-    $secondFileContent = file_get_contents($normalizedSecondFilePath);
 
     $format = $response->args['--format'] ?? 'stylish';
 
