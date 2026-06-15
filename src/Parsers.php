@@ -2,9 +2,6 @@
 
 namespace Differ\Parsers;
 
-use Differ\Parsers\JsonParser;
-use Differ\Parsers\YamlParser;
-
 function getParser(string $fileExtension): ParserInterface
 {
     switch ($fileExtension) {
