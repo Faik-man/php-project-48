@@ -7,7 +7,6 @@ use PHPUnit\Framework\TestCase;
 
 use function Differ\Differ\genDiff;
 use function Differ\Differ\buildDiff;
-use function Differ\Differ\normalizePath;
 use function Differ\Parsers\getParser;
 use function Differ\Formatters\getFormatter;
 
@@ -29,22 +28,6 @@ class DifferTest extends TestCase
     private function getFilePath(string $name): string
     {
         return $this->path . $name;
-    }
-
-    public function testNormalizeFilePath(): void
-    {
-        $normalizedFilePath1 = normalizePath($this->getFilePath('expected.json'));
-
-        chdir(__DIR__);
-        $normalizedFilePath2 = normalizePath('./fixtures/expected.json');
-
-        chdir(__DIR__ . '/../src');
-        $normalizedFilePath3 = normalizePath('../tests/fixtures/expected.json');
-
-        $expected = $this->getFilePath('expected.json');
-        $this->assertEquals($expected, $normalizedFilePath1);
-        $this->assertEquals($expected, $normalizedFilePath2);
-        $this->assertEquals($expected, $normalizedFilePath3);
     }
 
     #[DataProvider('corruptProvider')]
@@ -110,14 +93,5 @@ class DifferTest extends TestCase
     {
         $this->expectException(\Exception::class);
         genDiff($this->getFilePath('random_file1.json'), $this->getFilePath('random_file2.json'));
-    }
-
-    public function testGenDiffUnmatchedParsers(): void
-    {
-        $filePath1 = $this->getFilePath('file1.json');
-        $filePath2 = $this->getFilePath('file1.yml');
-
-        $this->expectException(\Exception::class);
-        genDiff($filePath1, $filePath2);
     }
 }

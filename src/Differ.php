@@ -2,122 +2,96 @@
 
 namespace Differ\Differ;
 
-use Funct\Collection;
 use Differ\Node;
 
 use function Differ\Formatters\getFormatter;
 use function Differ\Parsers\getParser;
+use function Funct\Collection\sortBy;
 
 function genDiff(string $filePath1, string $filePath2, string $format = 'stylish'): string
 {
-    $result = buildDiff($filePath1, $filePath2);
+    $fileData1 = getFileData($filePath1);
+    $fileData2 = getFileData($filePath2);
+
+    $result = buildDiff($fileData1, $fileData2);
     $formatter = getFormatter($format);
     return $formatter::format($result);
 }
 
-function buildDiff(string $filePath1, string $filePath2): array
+function buildDiff(array $fileData1, array $fileData2): array
 {
-    $normalizedFilePath1 = normalizePath($filePath1);
-    $normalizedFilePath2 = normalizePath($filePath2);
+    $parser1 = getParser($fileData1['extension']);
+    $parser2 = getParser($fileData2['extension']);
 
-    $fileExtension1 = getFileExtension($normalizedFilePath1);
-    $fileExtension2 = getFileExtension($normalizedFilePath2);
+    $fileObj1 = $parser1::parse($fileData1['content']);
+    $fileObj2 = $parser2::parse($fileData2['content']);
 
-    $fileContent1 = getFileContent($normalizedFilePath1);
-    $fileContent2 = getFileContent($normalizedFilePath2);
-
-    $parser = getParser($fileExtension1);
-    if ($parser != getParser($fileExtension2)) {
-        throw new \Exception('Parsers do not match each other!');
-    }
-
-    $fileObj1 = $parser::parse($fileContent1);
-    $fileObj2 = $parser::parse($fileContent2);
-
-    $iter = function (object $fileObj1, object $fileObj2) use (&$iter): array {
-        $keys = array_unique(
-            array_merge(
-                array_keys(get_object_vars($fileObj1)),
-                array_keys(get_object_vars($fileObj2))
-            )
-        );
-        $sortedKeys = Collection\sortBy($keys, fn($key) => $key);
-
-        $tree = array_reduce(
-            $sortedKeys,
-            function (array $acc, string $key) use ($iter, $fileObj1, $fileObj2): array {
-                if (property_exists($fileObj1, $key) && !property_exists($fileObj2, $key)) {
-                    $value = $fileObj1->$key;
-                    return [...$acc, new Node($key, $value, Node::REMOVED)];
-                } elseif (!property_exists($fileObj1, $key) && property_exists($fileObj2, $key)) {
-                    $value = $fileObj2->$key;
-                    return [...$acc, new Node($key, $value, Node::ADDED)];
-                } elseif (is_object($fileObj1->$key) && is_object($fileObj2->$key)) {
-                    $children = $iter($fileObj1->$key, $fileObj2->$key);
-                    return [...$acc, new Node($key, '', Node::UNCHANGED, $children)];
-                } elseif ($fileObj1->$key === $fileObj2->$key) {
-                    $value = $fileObj1->$key;
-                    return [...$acc, new Node($key, $value, Node::UNCHANGED)];
-                } else {
-                    $value1 = $fileObj1->$key;
-                    $value2 = $fileObj2->$key;
-                    return [...$acc, new Node($key, [$value1, $value2], Node::UPDATED)];
-                }
-            },
-            []
-        );
-        return $tree;
-    };
-
-    return $iter($fileObj1, $fileObj2);
+    return iterateObjects($fileObj1, $fileObj2);
 }
 
-function getFileContent(string $filePath): string
+function iterateObjects(object $fileObj1, object $fileObj2): array
 {
-    $fileContent = @file_get_contents($filePath);
-    if ($fileContent === false) {
-        throw new \Exception("Not found file by path: {$filePath}!");
-    }
-
-    return (string)$fileContent;
-}
-
-function getFileExtension(string $filePath): string
-{
-    $pathInfo = pathinfo($filePath);
-    return $pathInfo['extension'] ?? '';
-}
-
-function normalizePath(string $filePath): string
-{
-    if (
-        str_starts_with($filePath, '/') ||
-        (ctype_alpha($filePath[0]) && str_starts_with(mb_substr($filePath, 1), ":\\"))
-    ) {
-        return $filePath;
-    }
-
-    $absFilePath = getcwd() . "/{$filePath}";
-
-    $pathParts = explode(DIRECTORY_SEPARATOR, $absFilePath);
-    $filteredPathParts = array_filter(
-        $pathParts,
-        fn(string $part) => $part !== '.'
+    $keys = array_unique(
+        array_merge(
+            array_keys(get_object_vars($fileObj1)),
+            array_keys(get_object_vars($fileObj2))
+        )
     );
+    $sortedKeys = sortBy($keys, fn($key) => $key);
 
-    $filteredPathParts = array_reduce(
-        $filteredPathParts,
-        function (array $acc, string $part): array {
-            if ($part == '..') {
-                array_pop($acc);
-            } else {
-                array_push($acc, $part);
+    $tree = array_reduce(
+        $sortedKeys,
+        function (array $acc, string $key) use ($fileObj1, $fileObj2): array {
+            if (property_exists($fileObj1, $key) && !property_exists($fileObj2, $key)) {
+                $value = $fileObj1->$key;
+                return [...$acc, new Node($key, $value, Node::REMOVED)];
             }
 
-            return $acc;
+            if (!property_exists($fileObj1, $key) && property_exists($fileObj2, $key)) {
+                $value = $fileObj2->$key;
+                return [...$acc, new Node($key, $value, Node::ADDED)];
+            }
+
+            if (is_object($fileObj1->$key) && is_object($fileObj2->$key)) {
+                $children = iterateObjects($fileObj1->$key, $fileObj2->$key);
+                return [...$acc, new Node($key, '', Node::UNCHANGED, $children)];
+            }
+
+            if ($fileObj1->$key === $fileObj2->$key) {
+                $value = $fileObj1->$key;
+                return [...$acc, new Node($key, $value, Node::UNCHANGED)];
+            }
+
+            $value1 = $fileObj1->$key;
+            $value2 = $fileObj2->$key;
+            return [...$acc, new Node($key, ['oldValue' => $value1, 'newValue' => $value2], Node::UPDATED)];
         },
         []
     );
 
-    return implode(DIRECTORY_SEPARATOR, $filteredPathParts);
+    return $tree;
+}
+
+function getFileData(string $filePath): array
+{
+    $pathInfo = pathinfo($filePath);
+    $fileContent = getFileContent($filePath);
+    return [
+        'extension' => $pathInfo['extension'] ?? '',
+        'content'   => $fileContent
+    ];
+}
+
+function getFileContent(string $filePath): string
+{
+    if (!file_exists($filePath)) {
+        throw new \Exception("Not found file by path: {$filePath}!");
+    }
+
+    $fileContent = file_get_contents($filePath);
+    if ($fileContent === false) {
+        throw new \Exception("Error of reading file: {$filePath}!");
+    }
+
+    return $fileContent;
 }
