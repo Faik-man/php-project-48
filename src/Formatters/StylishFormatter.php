@@ -6,9 +6,10 @@ use Differ\Node;
 
 class StylishFormatter implements FormatterInterface
 {
+    protected const FORMAT_STRING = '%s%s: %s';
+
     public static function format(array $tree): string
     {
-
         $result = array_reduce(
             $tree,
             fn(array $acc, Node $node): array => self::iterateTree($node, $acc),
@@ -31,14 +32,27 @@ class StylishFormatter implements FormatterInterface
         $spaces = self::createSpaces($diffType, $spacesCount);
         if ($node->isLeaf()) {
             if ($diffType === Node::UPDATED) {
+                $oldValue = sprintf(
+                    self::FORMAT_STRING,
+                    self::createSpaces(Node::REMOVED, $spacesCount),
+                    $propertyName,
+                    self::toString($value['oldValue'], $newDepth)
+                );
+                $newValue = sprintf(
+                    self::FORMAT_STRING,
+                    self::createSpaces(Node::ADDED, $spacesCount),
+                    $propertyName,
+                    self::toString($value['newValue'], $newDepth)
+                );
                 $newAcc = array_merge($acc, [
-                    self::createSpaces(Node::REMOVED, $spacesCount) .
-                    "{$propertyName}: " . self::toString($value['oldValue'], $newDepth),
-                    self::createSpaces(Node::ADDED, $spacesCount) .
-                    "{$propertyName}: " . self::toString($value['newValue'], $newDepth)
+                    $oldValue,
+                    $newValue
                 ]);
             } else {
-                $newAcc = [...$acc, $spaces . $propertyName . ': ' . self::toString($value, $newDepth)];
+                $newAcc = [
+                    ...$acc,
+                    sprintf(self::FORMAT_STRING, $spaces, $propertyName, self::toString($value, $newDepth))
+                ];
             }
 
             return $newAcc;
@@ -52,7 +66,7 @@ class StylishFormatter implements FormatterInterface
             $newAcc
         );
 
-        return [...$updatedChildren, $spaces . '}'];
+        return [...$updatedChildren, sprintf('%s}', $spaces)];
     }
 
     private static function createSpaces(string $diffType, int $spacesCount): string
@@ -73,7 +87,7 @@ class StylishFormatter implements FormatterInterface
                 $propertyValue = $properties[$propertyName];
                 $spaces = str_repeat(' ', $depth * self::SPACES_COUNT);
 
-                return $spaces . $propertyName . ': ' . self::toString($propertyValue, $depth + 1);
+                return sprintf(self::FORMAT_STRING, $spaces, $propertyName, self::toString($propertyValue, $depth + 1));
             },
             array_keys($properties)
         );
@@ -81,7 +95,7 @@ class StylishFormatter implements FormatterInterface
         $objectParts = [
             '{',
             implode("\n", $result),
-            str_repeat(' ', self::SPACES_COUNT * ($depth - 1)) . '}'
+            sprintf('%s}', str_repeat(' ', self::SPACES_COUNT * ($depth - 1)))
         ];
 
         return implode("\n", $objectParts);

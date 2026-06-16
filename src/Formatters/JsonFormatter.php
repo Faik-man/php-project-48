@@ -15,14 +15,14 @@ class JsonFormatter implements FormatterInterface
             array_keys($json)
         );
 
-        return "{\n" . implode(",\n", $result) . "\n}";
+        return sprintf("{\n%s\n}", implode(",\n", $result));
     }
 
     private static function iterateProperty(string $propertyName, mixed $propertyValue, int $depth = 1): string
     {
         $spaces = str_repeat(' ', $depth * self::SPACES_COUNT);
         if (!in_array(gettype($propertyValue), ['array', 'object'])) {
-            $result = $spaces . self::toString($propertyName) . ': ' . self::toString($propertyValue);
+            $result = sprintf('%s%s: %s', $spaces, self::toString($propertyName), self::toString($propertyValue));
             return $result;
         }
 
@@ -38,12 +38,13 @@ class JsonFormatter implements FormatterInterface
             array_keys($innerProperties)
         );
 
-        $begin = $spaces . self::toString($propertyName) . ": {\n";
-        $end = $spaces . '}';
+        $result = [
+            sprintf('%s%s: {', $spaces, self::toString($propertyName)),
+            implode(",\n", $updatedProperties),
+            sprintf("%s}", $spaces)
+        ];
 
-        $result = $begin . implode(",\n", $updatedProperties) . "\n" . $end;
-
-        return $result;
+        return implode("\n", $result);
     }
 
     private static function createJson(array $tree): array
