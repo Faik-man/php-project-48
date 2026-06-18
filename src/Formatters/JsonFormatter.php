@@ -49,16 +49,15 @@ class JsonFormatter implements FormatterInterface
 
     private static function createJson(array $tree): array
     {
-        $json = array_reduce(
-            $tree,
-            fn(array $acc, Node $node): array => self::iterateTree($node, $acc),
-            []
+        $json = array_map(
+            fn(Node $node): array => self::iterateTree($node),
+            $tree
         );
 
-        return $json;
+        return self::mergeRecursive($json);
     }
 
-    private static function iterateTree(Node $node, array $acc): array
+    private static function iterateTree(Node $node): array
     {
         $property = $node->getPropertyName();
         if ($node->isLeaf()) {
@@ -66,32 +65,60 @@ class JsonFormatter implements FormatterInterface
             $diffType = $node->getDiffType();
             switch ($diffType) {
                 case Node::REMOVED:
-                    $acc['removed'][$property] = $value;
+                    $result = [
+                        'removed' => [
+                            $property => $value
+                        ]
+                    ];
                     break;
                 case Node::ADDED:
-                    $acc['added'][$property] = $value;
+                    $result = [
+                        'added' => [
+                            $property => $value
+                        ]
+                    ];
                     break;
                 case Node::UPDATED:
-                    $acc['updated'][$property] = [
-                        'old' => $value['oldValue'],
-                        'new' => $value['newValue']
+                    $result = [
+                        'updated' => [
+                            $property => [
+                                'old' => $value['oldValue'],
+                                'new' => $value['newValue']
+                            ]
+                        ]
                     ];
                     break;
                 default:
-                    $acc[$property] = $value;
+                    $result = [
+                        $property => $value
+                    ];
                     break;
             }
 
-            return $acc;
+            return $result;
         }
 
-        $acc[$property] = array_reduce(
-            $node->getChildren(),
-            fn(array $acc, Node $child): array => self::iterateTree($child, $acc),
+        $updatedChildren = array_map(
+            fn(Node $child): array => self::iterateTree($child),
+            $node->getChildren()
+        );
+
+        $result = [
+            $property => self::mergeRecursive($updatedChildren)
+        ];
+
+        return $result;
+    }
+
+    private static function mergeRecursive(array $nested): array
+    {
+        $result = array_reduce(
+            $nested,
+            fn(array $acc, array $item): array => array_merge_recursive($acc, $item),
             []
         );
 
-        return $acc;
+        return $result;
     }
 
     private static function toString(mixed $value): string
