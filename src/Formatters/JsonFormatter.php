@@ -74,7 +74,7 @@ class JsonFormatter implements FormatterInterface
                 case Node::UPDATED:
                     $acc['updated'][$property] = [
                         'old' => $value['oldValue'],
-                        'new' => $value['newValue'],
+                        'new' => $value['newValue']
                     ];
                     break;
                 default:

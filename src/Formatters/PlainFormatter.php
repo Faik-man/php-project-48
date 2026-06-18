@@ -3,7 +3,8 @@
 namespace Differ\Formatters;
 
 use Differ\Node;
-use Funct\Collection;
+
+use function Funct\Collection\flattenAll;
 
 class PlainFormatter implements FormatterInterface
 {
@@ -14,7 +15,7 @@ class PlainFormatter implements FormatterInterface
             $tree,
         );
 
-        $flattenedResult = Collection\flattenAll($result);
+        $flattenedResult = flattenAll($result);
 
         return implode("\n", array_filter($flattenedResult));
     }

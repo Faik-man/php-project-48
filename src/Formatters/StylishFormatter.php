@@ -4,23 +4,25 @@ namespace Differ\Formatters;
 
 use Differ\Node;
 
+use function Funct\Collection\flattenAll;
+
 class StylishFormatter implements FormatterInterface
 {
     protected const FORMAT_STRING = '%s%s: %s';
 
     public static function format(array $tree): string
     {
-        $result = array_reduce(
-            $tree,
-            fn(array $acc, Node $node): array => self::iterateTree($node, $acc),
-            []
+        $result = array_map(
+            fn(Node $node): array => self::iterateTree($node),
+            $tree
         );
 
-        $result = implode("\n", $result);
+        $flattenedResult = flattenAll($result);
+        $result = implode("\n", $flattenedResult);
         return "{\n{$result}\n}";
     }
 
-    private static function iterateTree(Node $node, array $acc, int $depth = 1): array
+    private static function iterateTree(Node $node, int $depth = 1): array
     {
         $propertyName = $node->getPropertyName();
         $value = $node->getValue();
@@ -44,29 +46,23 @@ class StylishFormatter implements FormatterInterface
                     $propertyName,
                     self::toString($value['newValue'], $newDepth)
                 );
-                $newAcc = array_merge($acc, [
+                $result = [
                     $oldValue,
                     $newValue
-                ]);
-            } else {
-                $newAcc = [
-                    ...$acc,
-                    sprintf(self::FORMAT_STRING, $spaces, $propertyName, self::toString($value, $newDepth))
                 ];
+            } else {
+                $result = [sprintf(self::FORMAT_STRING, $spaces, $propertyName, self::toString($value, $newDepth))];
             }
 
-            return $newAcc;
+            return $result;
         }
 
-        $newAcc = [...$acc, "{$spaces}{$propertyName}: {"];
-
-        $updatedChildren = array_reduce(
-            $node->getChildren(),
-            fn(array $innerAcc, Node $child) => self::iterateTree($child, $innerAcc, $depth + 1),
-            $newAcc
+        $updatedChildren = array_map(
+            fn(Node $child) => self::iterateTree($child, $depth + 1),
+            $node->getChildren()
         );
 
-        return [...$updatedChildren, sprintf('%s}', $spaces)];
+        return ["{$spaces}{$propertyName}: {", ...$updatedChildren, sprintf('%s}', $spaces)];
     }
 
     private static function createSpaces(string $diffType, int $spacesCount): string

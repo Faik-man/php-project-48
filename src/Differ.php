@@ -39,34 +39,33 @@ function iterateObjects(object $fileObj1, object $fileObj2): array
     );
     $sortedKeys = sortBy($keys, fn($key) => $key);
 
-    $tree = array_reduce(
-        $sortedKeys,
-        function (array $acc, string $key) use ($fileObj1, $fileObj2): array {
+    $tree = array_map(
+        function (string $key) use ($fileObj1, $fileObj2): Node {
             if (property_exists($fileObj1, $key) && !property_exists($fileObj2, $key)) {
                 $value = $fileObj1->$key;
-                return [...$acc, new Node($key, $value, Node::REMOVED)];
+                return new Node($key, $value, Node::REMOVED);
             }
 
             if (!property_exists($fileObj1, $key) && property_exists($fileObj2, $key)) {
                 $value = $fileObj2->$key;
-                return [...$acc, new Node($key, $value, Node::ADDED)];
+                return new Node($key, $value, Node::ADDED);
             }
 
             if (is_object($fileObj1->$key) && is_object($fileObj2->$key)) {
                 $children = iterateObjects($fileObj1->$key, $fileObj2->$key);
-                return [...$acc, new Node($key, '', Node::UNCHANGED, $children)];
+                return new Node($key, '', Node::UNCHANGED, $children);
             }
 
             if ($fileObj1->$key === $fileObj2->$key) {
                 $value = $fileObj1->$key;
-                return [...$acc, new Node($key, $value, Node::UNCHANGED)];
+                return new Node($key, $value, Node::UNCHANGED);
             }
 
             $value1 = $fileObj1->$key;
             $value2 = $fileObj2->$key;
-            return [...$acc, new Node($key, ['oldValue' => $value1, 'newValue' => $value2], Node::UPDATED)];
+            return new Node($key, ['oldValue' => $value1, 'newValue' => $value2], Node::UPDATED);
         },
-        []
+        $sortedKeys
     );
 
     return $tree;
