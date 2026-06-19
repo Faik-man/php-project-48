@@ -2,7 +2,7 @@
 
 namespace Differ;
 
-class Node
+class Node implements \JsonSerializable
 {
     private string $propertyName;
     private mixed $value;
@@ -45,5 +45,27 @@ class Node
     public function isLeaf(): bool
     {
         return empty($this->children);
+    }
+
+    public function jsonSerialize(): array
+    {
+        $diffType = match ($this->diffType) {
+            self::REMOVED   => 'removed',
+            self::ADDED     => 'added',
+            self::UNCHANGED => 'unchanged',
+            self::UPDATED   => 'updated',
+            default         => throw new \Exception("Not expected diffType: '{$this->diffType}'!")
+        };
+        $updatedChildren = array_map(
+            fn(Node $item): array => $item->jsonSerialize(),
+            $this->children
+        );
+
+        return [
+            'propertyName' => $this->propertyName,
+            'value'        => $this->value,
+            'diffType'     => $diffType,
+            'children'     => array_values($updatedChildren),
+        ];
     }
 }

@@ -1,68 +1,142 @@
-{
-    "common": {
-        "added": {
-            "follow": false,
-            "setting4": "blah blah",
-            "setting5": {
-                "key5": "value5"
-            }
-        },
-        "setting1": "Value 1",
-        "removed": {
-            "setting2": 200
-        },
-        "updated": {
-            "setting3": {
-                "old": true,
-                "new": null
-            }
-        },
-        "setting6": {
-            "doge": {
-                "updated": {
-                    "wow": {
-                        "old": "",
-                        "new": "so much"
-                    }
-                }
+[
+    {
+        "propertyName": "common",
+        "value": "",
+        "diffType": "unchanged",
+        "children": [
+            {
+                "propertyName": "follow",
+                "value": false,
+                "diffType": "added",
+                "children": []
             },
-            "key": "value",
-            "added": {
-                "ops": "vops"
-            }
-        }
-    },
-    "group1": {
-        "updated": {
-            "baz": {
-                "old": "bas",
-                "new": "bars"
+            {
+                "propertyName": "setting1",
+                "value": "Value 1",
+                "diffType": "unchanged",
+                "children": []
             },
-            "nest": {
-                "old": {
-                    "key": "value"
+            {
+                "propertyName": "setting2",
+                "value": 200,
+                "diffType": "removed",
+                "children": []
+            },
+            {
+                "propertyName": "setting3",
+                "value": {
+                    "oldValue": true,
+                    "newValue": null
                 },
-                "new": "str"
+                "diffType": "updated",
+                "children": []
+            },
+            {
+                "propertyName": "setting4",
+                "value": "blah blah",
+                "diffType": "added",
+                "children": []
+            },
+            {
+                "propertyName": "setting5",
+                "value": {
+                    "key5": "value5"
+                },
+                "diffType": "added",
+                "children": []
+            },
+            {
+                "propertyName": "setting6",
+                "value": "",
+                "diffType": "unchanged",
+                "children": [
+                    {
+                        "propertyName": "doge",
+                        "value": "",
+                        "diffType": "unchanged",
+                        "children": [
+                            {
+                                "propertyName": "wow",
+                                "value": {
+                                    "oldValue": "",
+                                    "newValue": "so much"
+                                },
+                                "diffType": "updated",
+                                "children": []
+                            }
+                        ]
+                    },
+                    {
+                        "propertyName": "key",
+                        "value": "value",
+                        "diffType": "unchanged",
+                        "children": []
+                    },
+                    {
+                        "propertyName": "ops",
+                        "value": "vops",
+                        "diffType": "added",
+                        "children": []
+                    }
+                ]
             }
-        },
-        "foo": "bar"
+        ]
     },
-    "removed": {
-        "group2": {
+    {
+        "propertyName": "group1",
+        "value": "",
+        "diffType": "unchanged",
+        "children": [
+            {
+                "propertyName": "baz",
+                "value": {
+                    "oldValue": "bas",
+                    "newValue": "bars"
+                },
+                "diffType": "updated",
+                "children": []
+            },
+            {
+                "propertyName": "foo",
+                "value": "bar",
+                "diffType": "unchanged",
+                "children": []
+            },
+            {
+                "propertyName": "nest",
+                "value": {
+                    "oldValue": {
+                        "key": "value"
+                    },
+                    "newValue": "str"
+                },
+                "diffType": "updated",
+                "children": []
+            }
+        ]
+    },
+    {
+        "propertyName": "group2",
+        "value": {
             "abc": 12345,
             "deep": {
                 "id": 45
             }
-        }
+        },
+        "diffType": "removed",
+        "children": []
     },
-    "added": {
-        "group3": {
+    {
+        "propertyName": "group3",
+        "value": {
             "deep": {
                 "id": {
                     "number": 45
                 }
             },
             "fee": 100500
-        }
+        },
+        "diffType": "added",
+        "children": []
     }
-}
+]

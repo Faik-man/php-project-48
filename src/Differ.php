@@ -68,7 +68,7 @@ function iterateObjects(object $fileObj1, object $fileObj2): array
         $sortedKeys
     );
 
-    return $tree;
+    return array_values($tree);
 }
 
 function getFileData(string $filePath): array
