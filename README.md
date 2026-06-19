@@ -13,6 +13,25 @@
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Faik-man_php-project-48&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=Faik-man_php-project-48)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=Faik-man_php-project-48&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=Faik-man_php-project-48)
 
+## Проект "Вычислитель отличий (PHP)"
+
+### Краткое описание проекта:
+Это итоговый проект по окончанию выполнения модуля №2 из курса PHP-Разработчик. Данный проект определяет различия между двумя файлами в формате json/yml путем парсинга файлов, выстраивания промежуточного представления и вывода в определенном формате.
+
+### Минимальные требования:
+* php 8.3
+* composer 2.9 (должен быть установлен глобально)
+* GNU make
+
+### Инструкция по установке:
+- Выполняем ```make install``` для установки зависимостей
+
+### Инструкция по запуску:
+- Для вычисления отличий вызываем исполняемый файл bin/gendiff и в качестве входных значений передаем путь до файлов в формате json/yml.
+```./bin/gendiff filepath1 filepath2```
+- По умолчанию формат вывода отличий - `stylish`. Для явного указания формата нужно добавить параметр `--format`. Варианты форматов: `stylish`, `plain` и `json`;
+```./bin/gendiff --format=plan filepath1 filepath2```
+
 ### Аскинемы:
 - [Шаг 4](https://asciinema.org/a/6glYHIaVRWi93IjV)
 - [Шаг 6](https://asciinema.org/a/uqMMC2geQiprmr22)
