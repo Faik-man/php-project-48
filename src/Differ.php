@@ -13,23 +13,18 @@ function genDiff(string $filePath1, string $filePath2, string $format = 'stylish
     $fileData1 = getFileData($filePath1);
     $fileData2 = getFileData($filePath2);
 
-    $result = buildDiff($fileData1, $fileData2);
-    $formatter = getFormatter($format);
-    return $formatter::format($result);
-}
-
-function buildDiff(array $fileData1, array $fileData2): array
-{
     $parser1 = getParser($fileData1['extension']);
     $parser2 = getParser($fileData2['extension']);
 
     $fileObj1 = $parser1::parse($fileData1['content']);
     $fileObj2 = $parser2::parse($fileData2['content']);
+    $diff = buildDiff($fileObj1, $fileObj2);
 
-    return iterateObjects($fileObj1, $fileObj2);
+    $formatter = getFormatter($format);
+    return $formatter::format($diff);
 }
 
-function iterateObjects(object $fileObj1, object $fileObj2): array
+function buildDiff(object $fileObj1, object $fileObj2): array
 {
     $keys = array_unique(
         array_merge(
@@ -52,7 +47,7 @@ function iterateObjects(object $fileObj1, object $fileObj2): array
             }
 
             if (is_object($fileObj1->$key) && is_object($fileObj2->$key)) {
-                $children = iterateObjects($fileObj1->$key, $fileObj2->$key);
+                $children = buildDiff($fileObj1->$key, $fileObj2->$key);
                 return new Node($key, '', Node::UNCHANGED, $children);
             }
 
