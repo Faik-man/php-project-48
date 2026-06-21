@@ -73,8 +73,23 @@ class StylishFormatter implements FormatterInterface
     private static function toString(mixed $value, int $depth = 1): string
     {
         if (!is_object($value)) {
-            $result = trim(var_export($value, true), "'");
-            return $value === null ? 'null' : $result;
+            if (is_string($value)) {
+                return $value;
+            }
+
+            if (is_null($value)) {
+                return 'null';
+            }
+
+            if (is_numeric($value)) {
+                return (string)$value;
+            }
+
+            if (is_bool($value)) {
+                return $value ? 'true' : 'false';
+            }
+
+            throw new \Exception(sprintf("Not expected type: '%s'!", gettype($value)));
         }
 
         $properties = get_object_vars($value);

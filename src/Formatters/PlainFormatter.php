@@ -57,12 +57,26 @@ class PlainFormatter implements FormatterInterface
 
     private static function toString(mixed $value): string
     {
-        if (is_object($value)) {
-            return '[complex value]';
-        } elseif (is_null($value)) {
-            return 'null';
+        if (!is_object($value)) {
+            if (is_string($value)) {
+                return "'{$value}'";
+            }
+
+            if (is_null($value)) {
+                return 'null';
+            }
+
+            if (is_numeric($value)) {
+                return (string)$value;
+            }
+
+            if (is_bool($value)) {
+                return $value ? 'true' : 'false';
+            }
+
+            throw new \Exception(sprintf("Not expected type: '%s'!", gettype($value)));
         }
 
-        return var_export($value, true);
+        return '[complex value]';
     }
 }
