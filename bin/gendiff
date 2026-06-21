@@ -26,8 +26,8 @@ Options:
   --format <fmt>                Report format [default: stylish]
 DOC;
 
-$response = Docopt::handle($doc);
-if ($response->success && empty(array_diff(['<firstFile>', '<secondFile>'], array_keys($response->args)))) {
+$response = Docopt::handle($doc, ['version' => '1.0.0']);
+if ($response->success) {
     $firstFilePath = $response['<firstFile>'];
     $secondFilePath = $response['<secondFile>'];
 
@@ -38,6 +38,5 @@ if ($response->success && empty(array_diff(['<firstFile>', '<secondFile>'], arra
         echo $diff;
     } catch(\Exception $e) {
         echo $e, PHP_EOL;
-        die;
     }
 }
