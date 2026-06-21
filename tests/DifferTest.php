@@ -12,11 +12,33 @@ use function Differ\Formatters\getFormatter;
 
 class DifferTest extends TestCase
 {
+    private const INPUT_JSON_FILES = ['file1.json', 'file2.json'];
+    private const INPUT_YML_FILES = ['file1.yml', 'file2.yml'];
+
     private string $fixturePath = __DIR__ . '/fixtures/';
 
     private function getFilePath(string $name): string
     {
         return $this->fixturePath . $name;
+    }
+
+    #[DataProvider('genDiffDefaultProvider')]
+    public function testGenDiffDefault(array $inputFilenames): void
+    {
+        [$firstInputFilename, $secondInputFilename] = $inputFilenames;
+        $filePath1 = $this->getFilePath($firstInputFilename);
+        $filePath2 = $this->getFilePath($secondInputFilename);
+        $actual = genDiff($filePath1, $filePath2);
+
+        $this->assertStringEqualsFile($this->getFilePath('expected1.txt'), $actual);
+    }
+
+    public static function genDiffDefaultProvider(): array
+    {
+        return [
+            [self::INPUT_JSON_FILES],
+            [self::INPUT_YML_FILES]
+        ];
     }
 
     #[DataProvider('genDiffProvider')]
@@ -32,16 +54,13 @@ class DifferTest extends TestCase
 
     public static function genDiffProvider(): array
     {
-        $inputJsonFiles = ['file1.json', 'file2.json'];
-        $inputYmlFiles = ['file1.yml', 'file2.yml'];
-
         return [
-            ['expected1.txt', 'stylish', $inputJsonFiles],
-            ['expected2.txt', 'plain',   $inputJsonFiles],
-            ['expected3.txt', 'json',    $inputJsonFiles],
-            ['expected1.txt', 'stylish', $inputYmlFiles],
-            ['expected2.txt', 'plain',   $inputYmlFiles],
-            ['expected3.txt', 'json',    $inputYmlFiles],
+            ['expected1.txt', 'stylish', self::INPUT_JSON_FILES],
+            ['expected2.txt', 'plain',   self::INPUT_JSON_FILES],
+            ['expected3.txt', 'json',    self::INPUT_JSON_FILES],
+            ['expected1.txt', 'stylish', self::INPUT_YML_FILES],
+            ['expected2.txt', 'plain',   self::INPUT_YML_FILES],
+            ['expected3.txt', 'json',    self::INPUT_YML_FILES],
         ];
     }
 
